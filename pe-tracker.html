@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Assessment Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pe-tracker.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-mark">
+                    <img src="file:///C:/Users/Cjohannsen/Desktop/DadsStuff/CalYoungLogo" alt="Cal Young Logo" class="logo-img">
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">Coachs Assessment Tracker</span>
+                    <span class="logo-sub">Physical Education Management</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-search">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" placeholder="Search students, assessments..." id="globalSearch">
+            </div>
+            <button class="profile-btn" id="profileBtn">
+                <div class="profile-avatar" id="profileAvatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+            </button>
+            <div class="settings-wrap">
+                <button class="header-btn" id="settingsBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <div class="settings-panel" id="settingsPanel">
+                    <div class="settings-section">
+                        <div class="settings-label">Accent Color</div>
+                        <div class="color-row">
+                            <button class="color-dot active" data-color="red" style="background:#dc2626"></button>
+                            <button class="color-dot" data-color="blue" style="background:#2563eb"></button>
+                            <button class="color-dot" data-color="green" style="background:#16a34a"></button>
+                            <button class="color-dot" data-color="purple" style="background:#9333ea"></button>
+                            <button class="color-dot" data-color="orange" style="background:#ea580c"></button>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-label">Appearance</div>
+                        <button class="theme-switch" id="themeSwitch">
+                            <span class="theme-switch-track">
+                                <span class="theme-switch-thumb"></span>
+                            </span>
+                            <span id="themeLabel">Dark Mode</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Container -->
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="assessments">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    Assessments
+                </button>
+                <button class="nav-item" data-tab="classes">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Classes
+                </button>
+                <button class="nav-item" data-tab="students">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Students
+                </button>
+                <button class="nav-item" data-tab="topscores">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    Top Scores
+                </button>
+            </nav>
+
+            <div class="sidebar-content">
+                <!-- Assessments sidebar -->
+                <div class="sidebar-panel active" id="panel-assessments">
+                    <div class="panel-head">
+                        <span class="panel-count" id="assessmentCount">0</span>
+                        <button class="panel-add-btn" id="addAssessmentBtn">+ New</button>
+                    </div>
+                    <div class="panel-list" id="sidebarAssessments"></div>
+                </div>
+                <!-- Classes sidebar -->
+                <div class="sidebar-panel" id="panel-classes">
+                    <div class="panel-head">
+                        <span class="panel-count" id="classCount">0</span>
+                        <button class="panel-add-btn" id="addClassBtn">+ New</button>
+                    </div>
+                    <div class="panel-list" id="sidebarClasses"></div>
+                </div>
+                <!-- Students sidebar -->
+                <div class="sidebar-panel" id="panel-students">
+                    <div class="panel-head">
+                        <span class="panel-count" id="studentCount">0</span>
+                        <button class="panel-add-btn" id="addStudentBtn">+ New</button>
+                    </div>
+                    <div class="panel-search">
+                        <input type="text" placeholder="Search by name..." id="studentNameFilter">
+                        <select class="panel-select" id="studentGradeFilter">
+                            <option value="">All Grades</option>
+                            <option value="6">6th Grade</option>
+                            <option value="7">7th Grade</option>
+                            <option value="8">8th Grade</option>
+                        </select>
+                        <select class="panel-select" id="studentPeriodFilter">
+                            <option value="">All Periods</option>
+                            <option value="1">Period 1</option>
+                            <option value="2">Period 2</option>
+                            <option value="3">Period 3</option>
+                            <option value="4">Period 4</option>
+                        </select>
+                        <input type="text" placeholder="School ID..." id="studentIdFilter">
+                        <button class="btn btn-outline btn-sm" id="resetStudentFilters">Reset</button>
+                    </div>
+                    <div class="panel-list" id="sidebarStudents"></div>
+                </div>
+                <!-- Top Scores sidebar -->
+                <div class="sidebar-panel" id="panel-topscores">
+                    <div class="panel-head">
+                        <span class="panel-count" id="scoreCount">0</span>
+                    </div>
+                    <div class="panel-search">
+                        <select id="scoreFilter" class="panel-select">
+                            <option value="all">All Assessments</option>
+                        </select>
+                    </div>
+                    <div class="panel-list" id="sidebarScores"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main" id="mainContent">
+            <!-- Default / Dashboard view -->
+            <div class="view active" id="view-dashboard">
+                <div class="view-header">
+                    <div>
+                        <h1 class="view-title">Dashboard</h1>
+                        <p class="view-sub">Overview of your PE program</p>
+                    </div>
+                </div>
+                
+                <!-- Image Carousel -->
+                <div class="carousel-container">
+                    <div class="carousel" id="imageCarousel">
+                        <div class="carousel-inner" id="carouselInner">
+                            <!-- Carousel items will be added here -->
+                        </div>
+                        <button class="carousel-btn carousel-prev" id="carouselPrev">&lt;</button>
+                        <button class="carousel-btn carousel-next" id="carouselNext">&gt;</button>
+                    </div>
+                    <div class="carousel-controls">
+                        <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+                        <button class="btn btn-outline btn-sm" id="addImageBtn">+ Add Image</button>
+                        <button class="btn btn-outline btn-sm" id="removeImageBtn">Remove Current</button>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="dash-card" id="recentActivity">
+                        <h3 class="dash-card-title">Recent Assessments</h3>
+                        <div id="recentList"></div>
+                    </div>
+                    <div class="dash-card" id="topPerformers">
+                        <h3 class="dash-card-title">Top Performers</h3>
+                        <div id="topList"></div>
+                    </div>
+                </div>
+                
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statStudents">0</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statClasses">0</div>
+                        <div class="stat-label">Classes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAssessments">0</div>
+                        <div class="stat-label">Assessments</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statGraded">0</div>
+                        <div class="stat-label">Grades Entered</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Page View -->
+            <div class="view" id="view-students-page">
+                <div class="view-header">
+                    <div>
+                        <h1 class="view-title">Students</h1>
+                        <p class="view-sub">Manage and view all students</p>
+                    </div>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="addStudentPageBtn">+ Add Student</button>
+                    </div>
+                </div>
+                <div class="students-page-filters">
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label class="filter-label">Search</label>
+                            <input type="text" class="filter-input" id="spNameFilter" placeholder="Search by name...">
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Grade</label>
+                            <select class="filter-select" id="spGradeFilter">
+                                <option value="all">All Grades</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Period</label>
+                            <select class="filter-select" id="spPeriodFilter">
+                                <option value="all">All Periods</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">School ID</label>
+                            <input type="text" class="filter-input" id="spIdFilter" placeholder="Search by ID...">
+                        </div>
+                        <button class="btn btn-primary filter-apply" id="spApplyFilters">Apply</button>
+                        <button class="btn btn-outline filter-reset" id="spResetFilters">Reset</button>
+                    </div>
+                </div>
+                <div class="students-page-stats">
+                    <div class="sp-stat"><span class="sp-stat-num" id="spTotalStudents">0</span> Total Students</div>
+                    <div class="sp-stat"><span class="sp-stat-num" id="spFilteredStudents">0</span> Showing</div>
+                </div>
+                <div class="students-page-table">
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Student ID</th>
+                                <th>Grade</th>
+                                <th>Period</th>
+                                <th>Assessments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsPageBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Classes Page View -->
+            <div class="view" id="view-classes-page">
+                <div class="view-header">
+                    <div>
+                        <h1 class="view-title">Classes</h1>
+                        <p class="view-sub">Manage and view all classes</p>
+                    </div>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="addClassPageBtn">+ Add Class</button>
+                    </div>
+                </div>
+                <div class="classes-page-grid" id="classesPageGrid"></div>
+            </div>
+
+            <!-- Assessment Detail View -->
+            <div class="view" id="view-assessment">
+                <div class="view-header">
+                    <div>
+                        <button class="back-btn" id="backFromAssessment">Back</button>
+                        <h1 class="view-title" id="assessmentDetailName"></h1>
+                        <p class="view-sub" id="assessmentDetailType"></p>
+                    </div>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="editAssessmentBtn">Edit</button>
+                        <button class="btn btn-outline" id="deleteAssessmentBtn">Delete</button>
+                    </div>
+                </div>
+                <div class="detail-info" id="assessmentInfo"></div>
+                <div class="grade-section">
+                    <div class="grade-header">
+                        <h3>Student Grades</h3>
+                        <select id="gradePeriodFilter" class="inline-select">
+                            <option value="all">All Periods</option>
+                        </select>
+                    </div>
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Period</th>
+                                <th>Time</th>
+                                <th>Reps</th>
+                                <th>Notes</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradeTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Class Detail View -->
+            <div class="view" id="view-class">
+                <div class="view-header">
+                    <div>
+                        <button class="back-btn" id="backFromClass">Back</button>
+                        <h1 class="view-title" id="classDetailName"></h1>
+                        <p class="view-sub" id="classDetailInfo"></p>
+                    </div>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="editClassBtn">Edit</button>
+                        <button class="btn btn-outline" id="deleteClassBtn">Delete</button>
+                    </div>
+                </div>
+                <div class="class-students-section">
+                    <div class="class-add-students">
+                        <h3>Add Students to Class</h3>
+                        <div class="student-search-add">
+                            <input type="text" id="classStudentSearch" placeholder="Search students by name or ID..." class="class-search-input">
+                            <div id="classStudentSearchResults" class="student-search-results"></div>
+                        </div>
+                    </div>
+                    <h3>Enrolled Students</h3>
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Student ID</th>
+                                <th>Assessments Completed</th>
+                                <th>Recent Results</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classStudentsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Student Detail View -->
+            <div class="view" id="view-student">
+                <div class="view-header">
+                    <div>
+                        <button class="back-btn" id="backFromStudent">Back</button>
+                        <h1 class="view-title" id="studentDetailName"></h1>
+                        <p class="view-sub" id="studentDetailInfo"></p>
+                    </div>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="editStudentBtn">Edit</button>
+                        <button class="btn btn-outline" id="deleteStudentBtn">Delete</button>
+                    </div>
+                </div>
+                <div class="student-grades-section">
+                    <h3>Assessment Results</h3>
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Assessment</th>
+                                <th>Type</th>
+                                <th>Result</th>
+                                <th>Reps</th>
+                                <th>Notes</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentGradesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Scores View -->
+            <div class="view" id="view-topscores">
+                <div class="view-header">
+                    <div>
+                        <h1 class="view-title">Top Scores</h1>
+                        <p class="view-sub">Leaderboard across all assessments</p>
+                    </div>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label class="filter-label">Assessment</label>
+                        <select class="filter-select" id="lbFilterAssessment">
+                            <option value="all">All Assessments</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Period</label>
+                        <select class="filter-select" id="lbFilterPeriod">
+                            <option value="all">All Periods</option>
+                            <option value="1">Period 1</option>
+                            <option value="2">Period 2</option>
+                            <option value="3">Period 3</option>
+                            <option value="4">Period 4</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Grade Level</label>
+                        <select class="filter-select" id="lbFilterGrade">
+                            <option value="all">All Grades</option>
+                            <option value="6">6th Grade</option>
+                            <option value="7">7th Grade</option>
+                            <option value="8">8th Grade</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Sort By</label>
+                        <select class="filter-select" id="lbSortBy">
+                            <option value="result-asc">Result A-Z</option>
+                            <option value="result-desc">Result Z-A</option>
+                            <option value="name-asc">Name A-Z</option>
+                            <option value="name-desc">Name Z-A</option>
+                            <option value="date-desc">Most Recent</option>
+                            <option value="date-asc">Oldest First</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary filter-apply" id="lbApplyFilters">Apply Filters</button>
+                    <button class="btn btn-outline filter-reset" id="lbResetFilters">Reset Filters</button>
+                </div>
+                <div class="lb-summary" id="lbSummary"></div>
+                <div class="leaderboard" id="leaderboard"></div>
+            </div>
+
+            <!-- Profile View -->
+            <div class="view" id="view-profile">
+                <div class="view-header">
+                    <div>
+                        <button class="back-btn" id="backFromProfile">Back</button>
+                        <h1 class="view-title">My Profile</h1>
+                        <p class="view-sub">Manage your account information</p>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <div class="profile-picture-section">
+                            <div class="profile-picture-container">
+                                <img id="profilePictureDisplay" src="https://picsum.photos/seed/defaultprofile/150/150.jpg" alt="Profile Picture" class="profile-picture">
+                                <div class="profile-picture-overlay">
+                                    <button class="btn btn-outline btn-sm" id="changeProfilePictureBtn">Change Picture</button>
+                                </div>
+                            </div>
+                            <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="profile-info-section">
+                            <h3>Account Information</h3>
+                            <form id="profileForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-input" id="profileFirstName" placeholder="Enter first name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-input" id="profileLastName" placeholder="Enter last name">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-input" id="profileEmail" placeholder="Enter email address">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" class="form-input" id="profileTitle" placeholder="e.g., PE Teacher, Coach">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">School</label>
+                                    <input type="text" class="form-input" id="profileSchool" placeholder="Enter school name">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bio</label>
+                                    <textarea class="form-textarea" id="profileBio" rows="4" placeholder="Tell us about yourself..."></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-outline" id="cancelProfileChanges">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report View -->
+            <div class="view" id="view-report">
+                <div class="view-header">
+                    <div>
+                        <h1 class="view-title">Reports</h1>
+                        <p class="view-sub">Generate and export assessment reports</p>
+                    </div>
+                    <div class="view-actions">
+                        <button class="btn btn-primary">Generate Report</button>
+                    </div>
+                </div>
+                <div class="report-content">
+                    <p style="text-align:center; color:var(--text-muted); padding:3rem;">Report generation coming soon...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalBox">
+            <div class="modal-head">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="pe-tracker.js"></script>
+</body>
+</html>
