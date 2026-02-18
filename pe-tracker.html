@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pe-tracker.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -78,6 +79,10 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     Students
                 </button>
+                <button class="nav-item" data-tab="reports">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Reports
+                </button>
                 <button class="nav-item" data-tab="topscores">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                     Top Scores
@@ -126,6 +131,26 @@
                         <button class="btn btn-outline btn-sm" id="resetStudentFilters">Reset</button>
                     </div>
                     <div class="panel-list" id="sidebarStudents"></div>
+                </div>
+                <!-- Reports sidebar -->
+                <div class="sidebar-panel" id="panel-reports">
+                    <div class="panel-head">
+                        <span class="panel-count">Reports</span>
+                    </div>
+                    <div class="panel-list">
+                        <div class="panel-item" id="reportNavClassSummary">
+                            <div class="panel-item-title">Class Summary</div>
+                            <div class="panel-item-sub">Completion rates by class</div>
+                        </div>
+                        <div class="panel-item" id="reportNavAssessment">
+                            <div class="panel-item-title">Assessment Report</div>
+                            <div class="panel-item-sub">Results by assessment</div>
+                        </div>
+                        <div class="panel-item" id="reportNavExport">
+                            <div class="panel-item-title">Export All Data</div>
+                            <div class="panel-item-sub">Download CSV of all grades</div>
+                        </div>
+                    </div>
                 </div>
                 <!-- Top Scores sidebar -->
                 <div class="sidebar-panel" id="panel-topscores">
@@ -208,6 +233,8 @@
                         <p class="view-sub">Manage and view all students</p>
                     </div>
                     <div class="view-actions">
+                        <button class="btn btn-outline" id="bulkImportBtn">Import CSV</button>
+                        <button class="btn btn-outline" id="exportStudentsBtn">Export CSV</button>
                         <button class="btn btn-primary" id="addStudentPageBtn">+ Add Student</button>
                     </div>
                 </div>
@@ -355,8 +382,15 @@
                         <p class="view-sub" id="studentDetailInfo"></p>
                     </div>
                     <div class="view-actions">
+                        <button class="btn btn-outline" id="exportStudentReportBtn">Export Report</button>
                         <button class="btn btn-primary" id="editStudentBtn">Edit</button>
                         <button class="btn btn-outline" id="deleteStudentBtn">Delete</button>
+                    </div>
+                </div>
+                <div class="student-progress-section">
+                    <h3>Progress Overview</h3>
+                    <div class="chart-container">
+                        <canvas id="studentProgressChart"></canvas>
                     </div>
                 </div>
                 <div class="student-grades-section">
@@ -496,11 +530,54 @@
                         <p class="view-sub">Generate and export assessment reports</p>
                     </div>
                     <div class="view-actions">
-                        <button class="btn btn-primary">Generate Report</button>
+                        <button class="btn btn-outline" id="exportClassReportBtn">Export Class Report</button>
+                        <button class="btn btn-primary" id="exportFullReportBtn">Export All Data</button>
                     </div>
                 </div>
                 <div class="report-content">
-                    <p style="text-align:center; color:var(--text-muted); padding:3rem;">Report generation coming soon...</p>
+                    <div class="report-filters">
+                        <div class="filter-bar">
+                            <div class="filter-group">
+                                <label class="filter-label">Class</label>
+                                <select class="filter-select" id="reportClassFilter">
+                                    <option value="all">All Classes</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Assessment</label>
+                                <select class="filter-select" id="reportAssessmentFilter">
+                                    <option value="all">All Assessments</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary filter-apply" id="reportApplyBtn">Generate</button>
+                        </div>
+                    </div>
+                    <div class="report-summary" id="reportSummary"></div>
+                    <div class="report-charts">
+                        <div class="report-chart-card">
+                            <h3>Completion Rate by Class</h3>
+                            <div class="chart-container"><canvas id="reportCompletionChart"></canvas></div>
+                        </div>
+                        <div class="report-chart-card">
+                            <h3>Assessment Distribution</h3>
+                            <div class="chart-container"><canvas id="reportDistributionChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="report-table-section">
+                        <h3>Detailed Results</h3>
+                        <table class="grade-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Class</th>
+                                    <th>Assessment</th>
+                                    <th>Result</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>

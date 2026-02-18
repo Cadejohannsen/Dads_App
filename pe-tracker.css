@@ -951,17 +951,119 @@ body {
     font-weight: 600;
 }
 
-/* Report */
-.report-content {
+/* Charts */
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-height: 280px;
+    margin-bottom: 1rem;
+}
+.student-progress-section {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 2rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
 }
-.report-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
-.report-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
-.report-table th, .report-table td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); font-size: 0.85rem; text-align: left; }
-.report-table th { background: var(--bg-secondary); font-weight: 600; }
+.student-progress-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+/* Report */
+.report-content {
+    padding: 0;
+}
+.report-filters {
+    margin-bottom: 1rem;
+}
+.report-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.report-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    text-align: center;
+}
+.report-stat-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+}
+.report-stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+.report-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.report-chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+}
+.report-chart-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+.report-table-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+}
+.report-table-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+/* Bulk Import */
+.bulk-import-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    transition: border-color var(--transition);
+}
+.bulk-import-area:hover {
+    border-color: var(--accent);
+}
+.bulk-import-area textarea {
+    width: 100%;
+    min-height: 120px;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+}
+.bulk-import-preview {
+    margin-top: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.bulk-import-preview table {
+    width: 100%;
+    font-size: 0.8rem;
+}
 
 /* ===== Modal ===== */
 .modal-overlay {

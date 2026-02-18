@@ -223,6 +223,19 @@ class App {
         // Classes page button
         document.getElementById('addClassPageBtn').addEventListener('click', () => this.openModal('class'));
 
+        // Bulk import & export
+        document.getElementById('bulkImportBtn').addEventListener('click', () => this.openBulkImportModal());
+        document.getElementById('exportStudentsBtn').addEventListener('click', () => this.exportStudentsCSV());
+        document.getElementById('exportStudentReportBtn').addEventListener('click', () => this.exportStudentReport());
+
+        // Reports
+        document.getElementById('reportApplyBtn').addEventListener('click', () => this.renderReport());
+        document.getElementById('exportClassReportBtn').addEventListener('click', () => this.exportClassReportCSV());
+        document.getElementById('exportFullReportBtn').addEventListener('click', () => this.exportFullDataCSV());
+        document.getElementById('reportNavClassSummary').addEventListener('click', () => { this.showView('report'); this.renderReport(); });
+        document.getElementById('reportNavAssessment').addEventListener('click', () => { this.showView('report'); this.renderReport(); });
+        document.getElementById('reportNavExport').addEventListener('click', () => this.exportFullDataCSV());
+
         // Carousel controls
         document.getElementById('carouselPrev').addEventListener('click', () => this.carouselPrev());
         document.getElementById('carouselNext').addEventListener('click', () => this.carouselNext());
@@ -263,6 +276,10 @@ class App {
         } else if (tab === 'classes') {
             this.showView('classes-page');
             this.renderClassesPage();
+        } else if (tab === 'reports') {
+            this.showView('report');
+            this.populateReportFilters();
+            this.renderReport();
         } else {
             this.showDashboard();
         }
@@ -461,6 +478,383 @@ class App {
         this.save();
         this.toast('Profile updated successfully');
         this.showDashboard();
+    }
+
+    // ===== Bulk Import =====
+    openBulkImportModal() {
+        const title = document.getElementById('modalTitle');
+        const body = document.getElementById('modalBody');
+        title.textContent = 'Bulk Import Students';
+        body.innerHTML = `
+            <div class="bulk-import-area">
+                <p style="font-weight:600;margin-bottom:0.5rem;">Paste CSV data or upload a file</p>
+                <p style="font-size:0.8rem;color:var(--text-muted);">Format: FirstName, LastName, StudentID, Grade, Period</p>
+                <textarea id="bulkImportData" placeholder="Alex, Johnson, S100, 6, 1&#10;Sam, Smith, S101, 7, 2&#10;Jordan, Williams, S102, 8, 3"></textarea>
+                <div style="margin-top:0.5rem;">
+                    <input type="file" id="bulkImportFile" accept=".csv,.txt" style="font-size:0.8rem;">
+                </div>
+            </div>
+            <div class="bulk-import-preview" id="bulkImportPreview"></div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="app.closeModal()">Cancel</button>
+                <button type="button" class="btn btn-outline" id="bulkPreviewBtn">Preview</button>
+                <button type="button" class="btn btn-primary" id="bulkImportConfirmBtn">Import</button>
+            </div>
+        `;
+        document.getElementById('bulkImportFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => { document.getElementById('bulkImportData').value = ev.target.result; };
+            reader.readAsText(file);
+        });
+        document.getElementById('bulkPreviewBtn').addEventListener('click', () => this.previewBulkImport());
+        document.getElementById('bulkImportConfirmBtn').addEventListener('click', () => this.confirmBulkImport());
+        document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    parseBulkCSV() {
+        const raw = document.getElementById('bulkImportData').value.trim();
+        if (!raw) return [];
+        const lines = raw.split('\n').filter(l => l.trim());
+        const students = [];
+        for (const line of lines) {
+            const parts = line.split(',').map(s => s.trim());
+            if (parts.length < 5) continue;
+            // Skip header row
+            if (parts[0].toLowerCase() === 'firstname' || parts[0].toLowerCase() === 'first') continue;
+            students.push({
+                first: parts[0],
+                last: parts[1],
+                id: parts[2],
+                grade: parts[3],
+                period: parts[4]
+            });
+        }
+        return students;
+    }
+
+    previewBulkImport() {
+        const students = this.parseBulkCSV();
+        const preview = document.getElementById('bulkImportPreview');
+        if (students.length === 0) {
+            preview.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No valid rows found. Check format: FirstName, LastName, ID, Grade, Period</p>';
+            return;
+        }
+        preview.innerHTML = `<p style="font-weight:600;margin-bottom:0.5rem;">${students.length} student(s) found:</p>
+            <table class="grade-table"><thead><tr><th>First</th><th>Last</th><th>ID</th><th>Grade</th><th>Period</th></tr></thead>
+            <tbody>${students.map(s => `<tr><td>${s.first}</td><td>${s.last}</td><td>${s.id}</td><td>${s.grade}</td><td>${s.period}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    confirmBulkImport() {
+        const students = this.parseBulkCSV();
+        if (students.length === 0) { this.toast('No valid data to import'); return; }
+        let added = 0, skipped = 0;
+        for (const s of students) {
+            if (this.students.find(ex => ex.id === s.id)) { skipped++; continue; }
+            this.students.push(s);
+            added++;
+        }
+        this.save();
+        this.renderAll();
+        this.closeModal();
+        this.toast(`Imported ${added} student(s)` + (skipped ? `, ${skipped} skipped (duplicate ID)` : ''));
+        if (this.currentTab === 'students') this.renderStudentsPage();
+    }
+
+    // ===== CSV Export =====
+    downloadCSV(filename, csvContent) {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    exportStudentsCSV() {
+        let csv = 'FirstName,LastName,StudentID,Grade,Period\n';
+        this.students.forEach(s => {
+            csv += `${s.first},${s.last},${s.id},${s.grade},${s.period}\n`;
+        });
+        this.downloadCSV('students_export.csv', csv);
+        this.toast('Students exported to CSV');
+    }
+
+    exportStudentReport() {
+        if (!this.selectedItem) return;
+        const s = this.selectedItem;
+        const studentGrades = this.grades[s.id] || {};
+        let csv = `Student Report: ${s.first} ${s.last}\nID: ${s.id}\nGrade: ${s.grade}\nPeriod: ${s.period}\n\n`;
+        csv += 'Assessment,Type,Result,Reps,Notes,Date\n';
+        this.assessments.forEach(a => {
+            const g = studentGrades[a.id];
+            if (g) {
+                csv += `${a.name},${this.typeLabel(a.type)},${g.time || ''},${g.reps || ''},${(g.notes || '').replace(/,/g, ';')},${g.date || ''}\n`;
+            } else {
+                csv += `${a.name},${this.typeLabel(a.type)},Not graded,,,,\n`;
+            }
+        });
+        this.downloadCSV(`student_report_${s.id}.csv`, csv);
+        this.toast(`Report exported for ${s.first} ${s.last}`);
+    }
+
+    exportClassReportCSV() {
+        const classFilter = document.getElementById('reportClassFilter').value;
+        let csv = 'Student,StudentID,Grade,Period,Assessment,Result,Reps,Notes,Date\n';
+        this.students.forEach(s => {
+            if (classFilter !== 'all') {
+                const c = this.classes.find(cl => cl.id === classFilter);
+                if (c && (String(s.period) !== String(c.period) || String(s.grade) !== String(c.grade))) return;
+            }
+            const studentGrades = this.grades[s.id] || {};
+            this.assessments.forEach(a => {
+                const g = studentGrades[a.id];
+                if (g) {
+                    csv += `${s.first} ${s.last},${s.id},${s.grade},${s.period},${a.name},${g.time || ''},${g.reps || ''},${(g.notes || '').replace(/,/g, ';')},${g.date || ''}\n`;
+                }
+            });
+        });
+        this.downloadCSV('class_report.csv', csv);
+        this.toast('Class report exported to CSV');
+    }
+
+    exportFullDataCSV() {
+        let csv = 'Student,StudentID,Grade,Period,Assessment,Type,Time,Reps,Notes,Date\n';
+        this.students.forEach(s => {
+            const studentGrades = this.grades[s.id] || {};
+            this.assessments.forEach(a => {
+                const g = studentGrades[a.id];
+                if (g) {
+                    csv += `${s.first} ${s.last},${s.id},${s.grade},${s.period},${a.name},${this.typeLabel(a.type)},${g.time || ''},${g.reps || ''},${(g.notes || '').replace(/,/g, ';')},${g.date || ''}\n`;
+                }
+            });
+        });
+        this.downloadCSV('pe_tracker_full_export.csv', csv);
+        this.toast('Full data exported to CSV');
+    }
+
+    // ===== Student Progress Chart =====
+    renderStudentProgressChart(studentId) {
+        const canvas = document.getElementById('studentProgressChart');
+        if (!canvas) return;
+        
+        // Destroy existing chart
+        if (this.studentChart) {
+            this.studentChart.destroy();
+            this.studentChart = null;
+        }
+
+        const studentGrades = this.grades[studentId] || {};
+        const assessmentNames = [];
+        const assessmentData = [];
+        const colors = [];
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#dc2626';
+
+        this.assessments.forEach(a => {
+            const g = studentGrades[a.id];
+            assessmentNames.push(a.name);
+            if (g) {
+                // Try to extract a numeric value from the result
+                const timeVal = g.time ? this.timeToSeconds(g.time) : null;
+                const repsVal = g.reps ? parseFloat(g.reps) : null;
+                assessmentData.push(timeVal || repsVal || 1);
+                colors.push(accentColor);
+            } else {
+                assessmentData.push(0);
+                colors.push('rgba(128,128,128,0.3)');
+            }
+        });
+
+        if (assessmentNames.length === 0) return;
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#ccc' : '#666';
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+        this.studentChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: assessmentNames,
+                datasets: [{
+                    label: 'Performance',
+                    data: assessmentData,
+                    backgroundColor: colors,
+                    borderColor: colors.map(c => c === accentColor ? accentColor : 'rgba(128,128,128,0.5)'),
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } },
+                    x: { ticks: { color: textColor, maxRotation: 45 }, grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    timeToSeconds(timeStr) {
+        if (!timeStr) return 0;
+        const parts = timeStr.split(':');
+        if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        return parseFloat(timeStr) || 0;
+    }
+
+    // ===== Reports =====
+    populateReportFilters() {
+        const classSelect = document.getElementById('reportClassFilter');
+        classSelect.innerHTML = '<option value="all">All Classes</option>' +
+            this.classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+        const assessSelect = document.getElementById('reportAssessmentFilter');
+        assessSelect.innerHTML = '<option value="all">All Assessments</option>' +
+            this.assessments.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    }
+
+    renderReport() {
+        this.populateReportFilters();
+        const classFilter = document.getElementById('reportClassFilter').value;
+        const assessFilter = document.getElementById('reportAssessmentFilter').value;
+
+        // Get filtered students
+        let students = this.students;
+        if (classFilter !== 'all') {
+            const c = this.classes.find(cl => cl.id === classFilter);
+            if (c) students = students.filter(s => String(s.period) === String(c.period) && String(s.grade) === String(c.grade));
+        }
+
+        // Calculate stats
+        let totalGraded = 0, totalPossible = 0;
+        const assessments = assessFilter !== 'all' ? this.assessments.filter(a => a.id === assessFilter) : this.assessments;
+        students.forEach(s => {
+            const sg = this.grades[s.id] || {};
+            assessments.forEach(a => {
+                totalPossible++;
+                if (sg[a.id]) totalGraded++;
+            });
+        });
+        const completionRate = totalPossible > 0 ? Math.round((totalGraded / totalPossible) * 100) : 0;
+
+        // Summary cards
+        document.getElementById('reportSummary').innerHTML = `
+            <div class="report-stat-card"><div class="report-stat-num">${students.length}</div><div class="report-stat-label">Students</div></div>
+            <div class="report-stat-card"><div class="report-stat-num">${assessments.length}</div><div class="report-stat-label">Assessments</div></div>
+            <div class="report-stat-card"><div class="report-stat-num">${totalGraded}</div><div class="report-stat-label">Grades Entered</div></div>
+            <div class="report-stat-card"><div class="report-stat-num">${completionRate}%</div><div class="report-stat-label">Completion Rate</div></div>
+        `;
+
+        // Charts
+        this.renderReportCompletionChart(students, assessments);
+        this.renderReportDistributionChart(assessments);
+
+        // Table
+        const tbody = document.getElementById('reportTableBody');
+        let rows = [];
+        students.forEach(s => {
+            const sg = this.grades[s.id] || {};
+            const className = this.classes.find(c => String(c.period) === String(s.period) && String(c.grade) === String(s.grade));
+            assessments.forEach(a => {
+                const g = sg[a.id];
+                if (g) {
+                    rows.push(`<tr>
+                        <td style="font-weight:600">${s.first} ${s.last}</td>
+                        <td>${className ? className.name : `Grade ${s.grade} P${s.period}`}</td>
+                        <td>${a.name}</td>
+                        <td>${[g.time, g.reps].filter(Boolean).join(' / ') || '—'}</td>
+                        <td>${g.date || '—'}</td>
+                    </tr>`);
+                }
+            });
+        });
+        tbody.innerHTML = rows.join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">No graded results found</td></tr>';
+    }
+
+    renderReportCompletionChart(students, assessments) {
+        const canvas = document.getElementById('reportCompletionChart');
+        if (!canvas) return;
+        if (this.reportCompChart) this.reportCompChart.destroy();
+
+        const classData = {};
+        this.classes.forEach(c => {
+            const classStudents = students.filter(s => String(s.period) === String(c.period) && String(s.grade) === String(c.grade));
+            let graded = 0, possible = 0;
+            classStudents.forEach(s => {
+                const sg = this.grades[s.id] || {};
+                assessments.forEach(a => { possible++; if (sg[a.id]) graded++; });
+            });
+            classData[c.name] = possible > 0 ? Math.round((graded / possible) * 100) : 0;
+        });
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#ccc' : '#666';
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#dc2626';
+
+        this.reportCompChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(classData),
+                datasets: [{
+                    label: 'Completion %',
+                    data: Object.values(classData),
+                    backgroundColor: accent + '99',
+                    borderColor: accent,
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { color: textColor, callback: v => v + '%' }, grid: { color: gridColor } },
+                    x: { ticks: { color: textColor, maxRotation: 45 }, grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    renderReportDistributionChart(assessments) {
+        const canvas = document.getElementById('reportDistributionChart');
+        if (!canvas) return;
+        if (this.reportDistChart) this.reportDistChart.destroy();
+
+        const typeCounts = {};
+        assessments.forEach(a => {
+            const label = this.typeLabel(a.type);
+            typeCounts[label] = (typeCounts[label] || 0) + 1;
+        });
+
+        const chartColors = ['#dc2626', '#2563eb', '#16a34a', '#9333ea', '#ea580c'];
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        this.reportDistChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(typeCounts),
+                datasets: [{
+                    data: Object.values(typeCounts),
+                    backgroundColor: chartColors.slice(0, Object.keys(typeCounts).length),
+                    borderWidth: 2,
+                    borderColor: isDark ? '#1e1e2e' : '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: isDark ? '#ccc' : '#666', padding: 12 }
+                    }
+                }
+            }
+        });
     }
 
     // ===== Students Page =====
@@ -903,6 +1297,7 @@ class App {
         });
 
         this.showView('student');
+        this.renderStudentProgressChart(s.id);
     }
 
     // ===== Leaderboard =====
